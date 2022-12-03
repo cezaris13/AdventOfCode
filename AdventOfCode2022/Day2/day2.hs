@@ -22,7 +22,6 @@ part1 input = sum $ answers
     lines1 = map lineToChars lines
     answers = map (\x -> part1solution $ lineToGameValues x) lines1
 
-
 part2 :: String -> Int
 part2 input = sum $ answers
   where
@@ -63,8 +62,6 @@ part2solution p1
   | fst p1 == Scissors && snd p1 == Lose = 0 + fromEnum Paper + 1
   | fst p1 == Scissors && snd p1 == Draw = 3 + fromEnum Scissors + 1
   | fst p1 == Scissors && snd p1 == Win = 6 + fromEnum Rock + 1
-
-
 
 charToGameValue :: Char -> GameValues
 charToGameValue 'A' = Rock
