@@ -3,8 +3,8 @@ import Data.List
 import System.IO
 import Control.Monad
 
+main :: IO()
 main = do
-  let input = []
   file <- openFile "input" ReadMode
   contents <- hGetContents file
   let lines = splitByNewLine contents

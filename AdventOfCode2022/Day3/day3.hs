@@ -1,11 +1,9 @@
 import Data.List.Split
 import Data.List
--- import Data.List.Unique
 import System.IO
 import Control.Monad
 
 main = do
-  let input = []
   file <- openFile "input" ReadMode
   contents <- hGetContents file
   let content = filter (\x -> length x > 2) $ splitByNewLine contents

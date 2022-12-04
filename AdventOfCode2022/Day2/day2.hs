@@ -7,7 +7,6 @@ data GameValues = Rock | Paper | Scissors deriving (Enum, Show, Eq)
 data Outcomes = Lose | Draw | Win deriving (Enum, Show, Eq)
 
 main = do
-  let input = []
   file <- openFile "input" ReadMode
   contents <- hGetContents file
   let pt1Ans = part1 contents
