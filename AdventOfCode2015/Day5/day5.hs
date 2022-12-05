@@ -50,7 +50,9 @@ allSubs n s
     | otherwise = []
 
 findIfContainsPalindromes :: String -> Bool
-findIfContainsPalindromes input = (length $ filter (\x -> x > 1) $ map length $ group $ sort ((filter (\x -> x !! 0 == x !! 2) $ allSubs 3 input) ++ (filter (\x -> x !! 0 == x !! 2) $ map reverse $ allSubs 3 input))) > 0
+findIfContainsPalindromes input = (length $ filter (\x -> x > 1) $ map length $ group $ sort ((filter filterPalindrome $ allSubs 3 input) ++ (filter filterPalindrome $ map reverse $ allSubs 3 input))) > 0
+  where
+    filterPalindrome = \x -> x !! 0 == x !! 2
 
 findIfContainsCombos :: String -> Bool
 findIfContainsCombos input = (length $ filter (\x -> x > 1) $ map length $ group $ sort $ map (\x -> x !! 0) $ group $ allSubs 2 input) > 0
