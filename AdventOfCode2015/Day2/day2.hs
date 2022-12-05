@@ -30,6 +30,5 @@ calculateRibbon input = cost
     cost = 2 * (sortedDimensions !! 0 + sortedDimensions !! 1) + (dimensions !! 0 * dimensions !! 1 * dimensions !! 2)
     sortedDimensions = sort dimensions
 
-
 convertStringToInt :: String -> Int
 convertStringToInt = read
