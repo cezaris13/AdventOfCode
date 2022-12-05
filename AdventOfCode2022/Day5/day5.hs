@@ -5,6 +5,8 @@ import Control.Monad
 import Data.Maybe
 import Data.Tuple.Select
 import Data.Tuple.Update
+import Data.Char(isSpace)
+import Data.Char
 
 type Command = (Int,Int,Int)
 type Blocks = [Block]
@@ -15,6 +17,7 @@ main = do
   file <- openFile "input" ReadMode
   contents <- hGetContents file
   let content = filter (\x -> length x > 2) $ splitByNewLine contents
+  print content
   print $ part1 content
   print $ part2 content
 
@@ -53,37 +56,30 @@ listToTuple :: [Int] -> Command
 listToTuple [a,b,c] = (a,b,c)
 
 -- Block parsing
-
 parseToBlocks :: [String] -> Blocks
-parseToBlocks input = parseToBlocks' (reverse input) []
-
-parseToBlocks' :: [String] -> Blocks -> Blocks -- let take from other side
-parseToBlocks' [] blocks = blocks
-parseToBlocks' (x:xs) blocks
-  | not $ elem '[' x = parseToBlocks' xs (addInitialValues listOfInts)
-  | otherwise = parseToBlocks' xs (addValuesToBlocks blocks x)
+parseToBlocks input = map stringToBlock noSpaces
   where
-    listOfInts = map convertStringToInt $ filter (\a -> length a > 0) $ splitOn " " x
+    transposedStrings = transpose $ unifyStrings input
+    noBraces = filter (\x -> (not $ elem ']' x) && (not $ elem '[' x)) transposedStrings
+    noSpaces = filter (\x -> length x > 0) $ map (dropWhile isSpace) noBraces
 
-addInitialValues :: [Int] -> Blocks
-addInitialValues l = map (\x -> (x,[])) l
-
-addValuesToBlocks :: Blocks -> String -> Blocks
-addValuesToBlocks blocks input = convertToBlocks' (convertStringToBlocks input) 1 blocks
-
-convertStringToBlocks :: String -> [String]
-convertStringToBlocks input =concat $map (splitOn "]") $ splitOn "[" input
-
-convertToBlocks' :: [String] -> Int -> Blocks -> Blocks
-convertToBlocks' [] _ blocks = blocks
-convertToBlocks' (x:xs) id blocks
-  | elem ' ' x = convertToBlocks' xs (id+((length x) `div` 4)) blocks
-  | length x > 0 = convertToBlocks' xs (succ id) filteredBlocks
-  | otherwise = convertToBlocks' xs id blocks
+stringToBlock :: String -> Block
+stringToBlock input = (id,values)
   where
-    filteredBlocks = (filter (\x -> sel1 x /= id) blocks) ++ appendedBlock
-    blockById = (filter (\x -> sel1 x == id) blocks) !! 0
-    appendedBlock = [((sel1 blockById), x ++ (sel2 blockById))]
+    id = convertStringToInt $ dropWhile isLetter input
+    values = takeWhile isLetter input
+
+unifyStrings :: [String] -> [String]
+unifyStrings input = map (\x -> appendNTimes x ' ' (maxLength - length x)) input
+  where
+    maxLength = maximum' $ map length input
+
+maximum' :: Ord a => [a] -> a
+maximum' = foldr1 (\x y ->if x >= y then x else y)
+
+appendNTimes :: String -> Char -> Int -> String
+appendNTimes li c 0 = li
+appendNTimes li c id = appendNTimes (li ++ [c]) c (id-1)
 -- Parsing end
 
 -- Command execution
