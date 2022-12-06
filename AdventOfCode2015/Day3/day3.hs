@@ -57,5 +57,3 @@ modifyCoordinates currCoord x
 
 splitByNewLine :: String -> [String]
 splitByNewLine = splitOn "\n"
-
--- todo part 2
