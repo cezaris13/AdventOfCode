@@ -18,9 +18,10 @@ main = do
   file <- openFile "input" ReadMode
   contents <- hGetContents file
   let content = map parseData $ filter (\x -> length x > 0) $ splitByNewLine contents
-  let response = foldl (\x y -> moveRope x y) ([(0,0),(0,0)],[(0,0)]) content
-  -- print content
-  print $ length $ group $ sort $ snd response
+  let response = foldl (\x y -> moveRope x y) (map (\_ -> (0,0)) [1..2],[(0,0)]) content -- part 1
+  print $ length $ snd response
+  let response = foldl (\x y -> moveRope x y) (map (\_ -> (0,0)) [1..10],[(0,0)]) content -- part 2
+  print $ length $ snd response
 
 splitByNewLine :: String -> [String]
 splitByNewLine = splitOn "\n"
@@ -35,38 +36,43 @@ parseStringToInt :: String -> Int
 parseStringToInt = read
 
 moveRope :: CoordsVisited -> Command -> CoordsVisited
-moveRope coords (_,0) =  coords
+moveRope coords (_,0) = coords
 moveRope coords (command,n) = moveRope updatedCoords (command,n-1)
   where
     updatedCoords = updateCoordinatesOneCommand coords command
--- trace ("Coordinates: "++show coords ++ "\n")
 
 updateCoordinatesOneCommand :: CoordsVisited -> Char -> CoordsVisited
 updateCoordinatesOneCommand coords comm = func' coords comm ([],[])
 
-func' :: CoordsVisited -> Char -> CoordsVisited -> CoordsVisited
+func' :: CoordsVisited -> Char -> CoordsVisited -> CoordsVisited -- save only last list element positions
 func' ([],_) _ coords = coords
+func' ([x],visited) command newCoords = (fst newCoords ++ [updatedX], updateVisitedCoords)
+  where
+    updatedX
+      | chebyshevDistance x (last $ fst newCoords) > 1 = snd response
+      | otherwise = x
+    response =  updateX x (last $ fst newCoords) command
+    updateVisitedCoords
+      | elem updatedX (snd newCoords) = snd newCoords
+      | otherwise = snd newCoords ++ [updatedX]
 func' (x:xs,vis) command ([],[]) = func' (xs,vis) command ([moveElement x (command,1)],vis)
-func' (x:xs,visited) command newCoords = func' (xs,visited) (fst response) (fst newCoords ++ [updatedX],snd newCoords ++[updatedX])
+func' (x:xs,visited) command newCoords = func' (xs,visited) (fst response) (fst newCoords ++ [updatedX],snd newCoords)
   where
     updatedX
       | chebyshevDistance x (last $ fst newCoords) > 1 = snd response
       | otherwise = x
     response =  updateX x (last $ fst newCoords) command
 
-updateX :: Coordinate -> Coordinate -> Char -> (Char,Coordinate) -- works with 2 length rope case
+updateX :: Coordinate -> Coordinate -> Char -> (Char,Coordinate)
 updateX (x1,y1) (px2,py2) command
   | x1-px2 == 0 || y1-py2 == 0 = (command, moveElement (x1,y1) (command,1))
   | otherwise = updatedCommand
   where
     updatedCommand
-      | x1 - px2 > 0 && y1 - py2 > 0 = ('U',(x1-1,y1-1))-- moved up scenatio
-      | x1 - px2 < 0 && y1 - py2 > 0 = ('D',(x1+1,y1-1))
-      | x1 - px2 > 0 && y1 - py2 < 0 = ('L',(x1-1,y1+1))
-      | x1 - px2 < 0 && y1 - py2 < 0 = ('R',(x1+1,y1+1))
-
-
-    --  here implement whole logic with first and second rope elements
+      | x1 - px2 > 0 && y1 - py2 > 0 = (command,(x1-1,y1-1)) -- these seem to have an effect
+      | x1 - px2 < 0 && y1 - py2 > 0 = (command,(x1+1,y1-1)) -- think of edge cases
+      | x1 - px2 > 0 && y1 - py2 < 0 = (command,(x1-1,y1+1))
+      | x1 - px2 < 0 && y1 - py2 < 0 = (command,(x1+1,y1+1))
 
 moveElement :: Coordinate -> Command -> Coordinate
 moveElement (x,y) (c,val)
@@ -77,3 +83,8 @@ moveElement (x,y) (c,val)
 
 chebyshevDistance :: Coordinate -> Coordinate -> Int
 chebyshevDistance (x1,y1) (x2,y2) = max (abs (x1-x2)) (abs (y1-y2))
+
+-- 1536 < 2304 < z < 3072
+--2592?
+
+-- 2688
