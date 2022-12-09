@@ -1,7 +1,5 @@
 import Data.List.Split
-import Data.List
 import System.IO
-import Control.Monad
 
 type Sections = (Int,Int)
 

@@ -1,11 +1,8 @@
 import Data.List.Split
 import Data.List
 import System.IO
-import Control.Monad
 import Data.Maybe
 import Data.Tuple.Select
-import Data.Tuple.Update
-import Data.Char(isSpace)
 import Data.Char
 
 type Command = (Int,Int,Int)

@@ -1,13 +1,9 @@
 import Data.List.Split
 import Data.List
 import System.IO
-import Control.Monad
 import Data.Maybe
-import Data.Tuple.Select
 import Data.Char
-import GHC.Integer
-import GHC.Arr (Array, array, bounds, assocs)
-import Debug.Trace
+import GHC.Arr
 
 type Trees = Array (Int,Int) Int
 

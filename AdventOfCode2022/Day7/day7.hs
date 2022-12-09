@@ -1,12 +1,9 @@
 import Data.List.Split
 import Data.List
 import System.IO
-import Control.Monad
 import Data.Maybe
 import Data.Tuple.Select
 import Data.Char
-import GHC.Integer
-import Debug.Trace
 
 type DirectoryL = String
 type Size = Int

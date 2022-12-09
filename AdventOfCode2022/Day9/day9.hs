@@ -37,7 +37,7 @@ moveRope coords (command,n) =moveRope updatedCoords (command,n-1)
 updateCoordinatesOneCommand :: CoordsVisited -> String -> CoordsVisited
 updateCoordinatesOneCommand coords comm = func' coords comm ([],[])
 
-func' :: CoordsVisited -> String -> CoordsVisited -> CoordsVisited -- save only last list element positions
+func' :: CoordsVisited -> String -> CoordsVisited -> CoordsVisited
 func' ([],_) _ coords = coords
 func' ([x],visited) command newCoords = (fst newCoords ++ [updatedX], updateVisitedCoords)
   where
@@ -65,8 +65,8 @@ updateX (x1,y1) (px2,py2) command
   | otherwise = updatedCommand
   where
     updatedCommand
-      | x1 - px2 > 0 && y1 - py2 > 0 = ("LD",(x1-1,y1-1)) -- these seem to have an effect
-      | x1 - px2 < 0 && y1 - py2 > 0 = ("RD",(x1+1,y1-1)) -- think of edge cases
+      | x1 - px2 > 0 && y1 - py2 > 0 = ("LD",(x1-1,y1-1))
+      | x1 - px2 < 0 && y1 - py2 > 0 = ("RD",(x1+1,y1-1))
       | x1 - px2 > 0 && y1 - py2 < 0 = ("LU",(x1-1,y1+1))
       | x1 - px2 < 0 && y1 - py2 < 0 = ("RU",(x1+1,y1+1))
 

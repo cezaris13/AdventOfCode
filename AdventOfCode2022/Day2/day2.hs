@@ -1,7 +1,5 @@
 import Data.List.Split
-import Data.List
 import System.IO
-import Control.Monad
 
 data GameValues = Rock | Paper | Scissors deriving (Enum, Show, Eq)
 data Outcomes = Lose | Draw | Win deriving (Enum, Show, Eq)
