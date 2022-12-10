@@ -12,7 +12,8 @@ main = do
   file <- openFile "input" ReadMode
   contents <- hGetContents file
   let content = filter (\x -> length x > 0) $ splitByNewLine contents
-  print $ foldl (\x (y,z) -> x+y*z) 0 $ filter (\(x,y) -> elem x [20,60,100,140,180,220]) $ executeCommands 1 [] content
+  print $ foldl (\x (y,z) -> x+y*z) 0 $ filter (\(x,y) -> elem x [20,60,100,140,180,220]) $ executeCommands 1 [] content -- part 1
+  putStrLn $ unlines $ map (\x -> drawLine x "") $ filter (\x -> length x > 1) $ chunksOf 40 $ map (\(x,y) -> (x `mod` 40,y)) $ executeCommands 1 [(1,1)] content -- part 2
 
 splitByNewLine :: String -> [String]
 splitByNewLine = splitOn "\n"
@@ -35,3 +36,14 @@ repeatLastVal [] = []
 repeatLastVal hist = hist ++ [(fst lastCommand+1,snd lastCommand)]
   where
     lastCommand = last hist
+
+-- part 2
+
+drawLine :: History -> String -> String
+drawLine [] line = line
+drawLine (x:xs) line = drawLine xs updatedLine
+  where
+    updatedLine
+      | snd x <= fst x && fst x <= (snd x) + 2 = line ++ "#"
+      | otherwise = line ++ " "
+    position = length line
