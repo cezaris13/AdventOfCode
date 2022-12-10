@@ -46,4 +46,3 @@ drawLine (x:xs) line = drawLine xs updatedLine
     updatedLine
       | snd x <= fst x && fst x <= (snd x) + 2 = line ++ "#"
       | otherwise = line ++ " "
-    position = length line
