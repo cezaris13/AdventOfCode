@@ -118,7 +118,6 @@ oneMonkeyTurn (id,(x:xs),inspectedCount,op,test) monkeys shouldReduce lcmV = one
                                   x++[y])) [] monkeys
     updatedCurrMonkey = (id,xs,inspectedCount+1,op,test)
 
-
 lcmN :: [Int] -> Int
 lcmN input = lcmN' input 1
 
