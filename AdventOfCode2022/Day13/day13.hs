@@ -22,7 +22,7 @@ main = do
   file <- openFile "input" ReadMode
   contents <- hGetContents file
   let parseStrings = parseString' contents
-  let ans = map comparator parseStrings
+  let ans = map compare' parseStrings
   print $ foldl (\x y -> x+fst y) 0 $ filter (\(_,x) -> x == True) $ zip [1..] ans
 
 splitByNewLine :: String -> [String]
@@ -37,32 +37,49 @@ parseString' input = parsedJson
                         where
                          parsed = map (\y -> E.fromRight JsonNull $ parseJsonMessage y)
 
-comparator :: (Json, Json) -> Bool
-comparator (JsonList [], JsonList []) = True
-comparator (JsonList [x], JsonList []) =
-  case x of
-    JsonInteger _ -> False
-    JsonList _ -> False
-comparator (JsonList [], JsonList [y]) =
-  case y of
-    JsonInteger _ -> True
-    JsonList _ -> True
-comparator (JsonList (x:xs), JsonList (y:ys)) = comparator (x, y) && comparator (JsonList xs, JsonList ys)
-comparator (JsonInteger a, JsonInteger b) = a <= b
-comparator (JsonList [], JsonInteger b) = True
-comparator (JsonList [a], JsonInteger b) =
+compare' :: (Json, Json) -> Bool
+compare' (JsonInteger a, JsonInteger b) = compareInts (JsonInteger a,JsonInteger b)
+compare' (JsonList a, JsonInteger b) = compareListInt (JsonList a,JsonInteger b)
+compare' (JsonInteger a, JsonList b) = compareIntList (JsonInteger a, JsonList b)
+compare' (JsonList (x:xs), JsonList (y:ys)) = compare' (x, y) && compare' (JsonList xs, JsonList ys)
+compare' (JsonList [], JsonList []) = True
+compare' (JsonList a, JsonList []) = False
+compare' (JsonList [], JsonList a) = True
+
+compareInts :: (Json,Json) -> Bool
+compareInts (JsonInteger a, JsonInteger b ) = a<=b
+
+compareListInt :: (Json,Json) -> Bool
+compareListInt (JsonList [], JsonInteger _) = True
+compareListInt (JsonList [a], JsonInteger b) =
   case a of
-    JsonInteger c -> c <= b
-    JsonList _ -> comparator (a,JsonInteger b)
-comparator (JsonInteger a, JsonList []) = False
-comparator (JsonList (x:_), JsonInteger b) = comparator (x, (JsonInteger b))
-comparator (JsonInteger x, JsonList [y]) =
-  case y of
-    JsonInteger c -> x <= c
-    JsonList _ -> comparator (JsonInteger x,y)
-comparator (JsonInteger a, JsonList (x:_)) = comparator (JsonInteger a, x)
-compatator (JsonList a, JsonList []) = False
-compatator (JsonList [], JsonList a) = True
+    JsonList c -> if length c == 0 then True else compareListInt (JsonList [c !! 0], JsonInteger b)
+    JsonInteger _ -> compareInts (a,JsonInteger b)
+compareListInt (JsonList a, JsonInteger b)
+  | length a == 0 = True
+  | otherwise = ans
+  where
+    firstElem = a !! 0
+    ans =
+      case firstElem of
+        JsonInteger c -> not (c == b) && compareInts (firstElem, JsonInteger b)
+        JsonList a -> compareListInt (firstElem,JsonInteger b)
+
+compareIntList :: (Json,Json) -> Bool
+compateIntList (JsonInteger _, JsonList []) = False
+compareIntList (JsonInteger a, JsonList [b]) =
+  case b of
+    JsonList c -> if length c == 0 then False else compareIntList (JsonInteger a, JsonList [c !! 0])
+    JsonInteger _ -> compareInts (JsonInteger a,b)
+compareIntList (JsonInteger a, JsonList b)
+  | length b == 0 = False
+  | otherwise = ans
+  where
+    firstElem = b !! 0
+    ans =
+      case firstElem of
+        JsonList _ -> compareIntList (JsonInteger a, firstElem)
+        JsonInteger _ -> compareInts (JsonInteger a, firstElem)
 
 -- parser - do not touch
 parseJsonMessage :: String -> Either String Json
