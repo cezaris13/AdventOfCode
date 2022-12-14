@@ -49,10 +49,6 @@ addCoordsOneCommand' (x:xs) coords
   | fst x == fst (xs !! 0) = addCoordsOneCommand' xs (coords ++ (map (\a -> ((fst x,a),'#')) ([snd x .. snd (xs !! 0)] ++ [snd (xs !! 0) .. snd x])))
   | otherwise = addCoordsOneCommand' xs (coords ++ (map (\a -> ((a,snd x),'#')) ([fst x .. fst (xs !! 0) ] ++ [fst (xs !! 0) .. fst x])))
 
- -- logic
--- addNGrains :: Int -> [(Coordinate,Char)] -> [(Coordinate,Char)]
--- addNGrains 0 ans = ans
--- addNGrains x coords = addNGrains (x-1) (moveOneSand (500,0) coords)
 addWhileAbyss :: Int -> Int -> [(Coordinate,Char)] -> Int
 addWhileAbyss id lowestPoint input
   | isJust oneIteration = trace ("id " ++ show id ++ "\n") addWhileAbyss (id+1) lowestPoint (fromJust oneIteration)
@@ -60,36 +56,24 @@ addWhileAbyss id lowestPoint input
     where
       oneIteration = moveOneSand (500,0) lowestPoint (Just input)
 
-checkIfReachedGround :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfReachedGround input coords = isJust $ L.find (\((x,y),z) -> x == fst input && (snd input)+1 == y && z == '#') coords
-
-checkIfReachedSand :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfReachedSand input coords = isJust $ L.find (\((x,y),z) -> x == fst input && (snd input)+1 == y && z == 'O') coords
+checkIfReachedBottom :: Coordinate -> [(Coordinate,Char)] -> Bool
+checkIfReachedBottom input coords = isJust $ L.find (\((x,y),z) -> x == fst input && (snd input)+1 == y) coords
 
 checkIfCanGoLeft :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfCanGoLeft input coords =  not $ isJust $ L.find (\((x,y),z) -> x == (fst input) - 1 && (snd input) == y && z == '#') coords
+checkIfCanGoLeft input coords = not $ isJust $ L.find (\((x,y),z) -> (x == (fst input) - 1 && (snd input) == y && z == '#') || (x == (fst input) - 1 && (snd input)+1 == y)) coords
 
 checkIfCanGoRight :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfCanGoRight input coords =not $ isJust $ L.find (\((x,y),z) -> x == (fst input) + 1 && (snd input) == y && z == '#') coords
-
-checkIfSandCanGoLeftDown :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfSandCanGoLeftDown input coords = not $ isJust $ L.find (\((x,y),z) -> x == (fst input) - 1 && (snd input)+1 == y) coords
-
-checkIfSandCanGoRightDown :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfSandCanGoRightDown input coords = not $ isJust $ L.find (\((x,y),z) -> x == (fst input) + 1 && (snd input)+1 == y) coords
+checkIfCanGoRight input coords = not $ isJust $ L.find (\((x,y),z) -> (x == (fst input) + 1 && (snd input) == y && z == '#') || ( x == (fst input) + 1 && (snd input)+1 == y)) coords
 
 moveOneSand :: Coordinate -> Int -> Maybe [(Coordinate,Char)] -> Maybe [(Coordinate,Char)]
 moveOneSand sandGrain lowestPoint Nothing = Nothing
 moveOneSand sandGrain lowestPoint (Just coords)
-  | (reachedGround || reachedSand) && (canGoLeft && canGoLeftDown) = moveOneSand (fst sandGrain-1,snd sandGrain+1) lowestPoint (Just coords)
-  | (reachedGround || reachedSand) && not (canGoLeft && canGoLeftDown) && (canGoRight && canGoRightDown) = moveOneSand  (fst sandGrain+1,snd sandGrain+1) lowestPoint (Just coords)
-  | (reachedGround || reachedSand) && not (canGoLeft && canGoLeftDown) && not (canGoRight && canGoRightDown) = Just(coords ++ [(sandGrain,'O')])
-  | not reachedGround && not reachedSand && snd sandGrain < lowestPoint = moveOneSand (fst sandGrain,snd sandGrain+1) lowestPoint (Just coords)
-  | not reachedGround && not reachedSand  && lowestPoint <= (snd sandGrain) =  Nothing
+  | reachedBottom && canGoLeft = moveOneSand (fst sandGrain-1,snd sandGrain+1) lowestPoint (Just coords)
+  | reachedBottom && not canGoLeft && canGoRight = moveOneSand  (fst sandGrain+1,snd sandGrain+1) lowestPoint (Just coords)
+  | reachedBottom && not canGoLeft && not canGoRight = Just(coords ++ [(sandGrain,'O')])
+  | not reachedBottom && snd sandGrain <= lowestPoint = moveOneSand (fst sandGrain,snd sandGrain+1) lowestPoint (Just coords)
+  | not reachedBottom && lowestPoint < (snd sandGrain) = trace ("final " ++ show coords ++ "\n") Nothing
     where
-      reachedGround = checkIfReachedGround sandGrain coords
-      reachedSand = checkIfReachedSand sandGrain coords
+      reachedBottom = checkIfReachedBottom sandGrain coords
       canGoLeft = checkIfCanGoLeft sandGrain coords
-      canGoLeftDown = checkIfSandCanGoLeftDown sandGrain coords
       canGoRight = checkIfCanGoRight sandGrain coords
-      canGoRightDown = checkIfSandCanGoRightDown sandGrain coords
