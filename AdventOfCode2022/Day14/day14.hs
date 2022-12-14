@@ -51,28 +51,31 @@ addCoordsOneCommand' (x:xs) coords
 
 addWhileAbyss :: Int -> Int -> [(Coordinate,Char)] -> Int
 addWhileAbyss id lowestPoint input
-  | isJust oneIteration = trace ("id " ++ show id ++ "\n") addWhileAbyss (id+1) lowestPoint (fromJust oneIteration)
-  | otherwise = id +1
+  | isJust oneIteration = trace ("id " ++ show id ++ "\n") addWhileAbyss (id+1) lowestPoint ((fromJust oneIteration):input)
+  | otherwise = id + 1
     where
       oneIteration = moveOneSand (500,0) lowestPoint (Just input)
 
 checkIfReachedBottom :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfReachedBottom input coords = isJust $ L.find (\((x,y),z) -> x == fst input && (snd input)+1 == y) coords
+checkIfReachedBottom input coords = isJust $ L.find (\((x,y),_) -> x == fst input && (snd input)+1 == y) coords
 
 checkIfCanGoLeft :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfCanGoLeft input coords = not $ isJust $ L.find (\((x,y),z) -> (x == (fst input) - 1 && (snd input) == y && z == '#') || (x == (fst input) - 1 && (snd input)+1 == y)) coords
+checkIfCanGoLeft input coords = not $ isJust $ L.find (\((x,y),_) -> (x == (fst input) - 1 && (snd input) == y) || (x == (fst input) - 1 && (snd input)+1 == y)) coords
 
 checkIfCanGoRight :: Coordinate -> [(Coordinate,Char)] -> Bool
-checkIfCanGoRight input coords = not $ isJust $ L.find (\((x,y),z) -> (x == (fst input) + 1 && (snd input) == y && z == '#') || ( x == (fst input) + 1 && (snd input)+1 == y)) coords
+checkIfCanGoRight input coords = not $ isJust $ L.find (\((x,y),_) -> (x == (fst input) + 1 && (snd input) == y) || ( x == (fst input) + 1 && (snd input)+1 == y)) coords
 
-moveOneSand :: Coordinate -> Int -> Maybe [(Coordinate,Char)] -> Maybe [(Coordinate,Char)]
+findJustAbove :: Int -> [(Coordinate,Char)] -> Int -- x -> y
+findJustAbove xCoord coords = foldl (\x y -> if xCoord == fst (fst y) then min (snd (fst y)) x else x) 10000 coords
+
+moveOneSand :: Coordinate -> Int -> Maybe [(Coordinate,Char)] -> Maybe (Coordinate,Char)
 moveOneSand sandGrain lowestPoint Nothing = Nothing
 moveOneSand sandGrain lowestPoint (Just coords)
-  | reachedBottom && canGoLeft = moveOneSand (fst sandGrain-1,snd sandGrain+1) lowestPoint (Just coords)
-  | reachedBottom && not canGoLeft && canGoRight = moveOneSand  (fst sandGrain+1,snd sandGrain+1) lowestPoint (Just coords)
-  | reachedBottom && not canGoLeft && not canGoRight = Just(coords ++ [(sandGrain,'O')])
   | not reachedBottom && snd sandGrain <= lowestPoint = moveOneSand (fst sandGrain,snd sandGrain+1) lowestPoint (Just coords)
   | not reachedBottom && lowestPoint < (snd sandGrain) = trace ("final " ++ show coords ++ "\n") Nothing
+  | reachedBottom && canGoLeft = moveOneSand (fst sandGrain-1,snd sandGrain+1) lowestPoint (Just coords)
+  | reachedBottom && canGoRight = moveOneSand  (fst sandGrain+1,snd sandGrain+1) lowestPoint (Just coords)
+  | reachedBottom = Just((sandGrain,'O'))
     where
       reachedBottom = checkIfReachedBottom sandGrain coords
       canGoLeft = checkIfCanGoLeft sandGrain coords
