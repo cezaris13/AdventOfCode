@@ -27,6 +27,7 @@ main = do
   contents <- hGetContents file
   let parseStrings = parseString' contents
   let ans = map compare' parseStrings
+  putStrLn $ unlines $ map show ans
   print $ foldl (\x y -> x+fst y) 0 $ filter (\(_,x) -> x == Truey || x == Equal) $ zip [1..] ans
   -- print $zip parseStrings ans
 
@@ -43,16 +44,16 @@ parseString' input = parsedJson
                          parsed = map (\y -> E.fromRight JsonNull $ parseJsonMessage y)
 
 compare' :: (Json, Json) -> BoolPlus
-compare' (JsonInteger a, JsonInteger b) = compareInts (JsonInteger a,JsonInteger b)
-compare' (JsonList a, JsonInteger b) = compareListInt (JsonList a,JsonInteger b)
-compare' (JsonInteger a, JsonList b) = compareIntList (JsonInteger a, JsonList b)
+compare' (JsonInteger a, JsonInteger b) = trace ("comparing ints: " ++ show a ++ " "++ show b ++"\n")compareInts (JsonInteger a,JsonInteger b)
+compare' (JsonList a, JsonInteger b) = trace ("comparing list int: " ++ show a ++ " " ++ show b ++ "\n") compareListInt (JsonList a,JsonInteger b)
+compare' (JsonInteger a, JsonList b) = trace ("comparing int list: " ++ show a ++ " " ++ show b ++ "\n") compareIntList (JsonInteger a, JsonList b)
 compare' (JsonList (x:xs), JsonList (y:ys)) =
   if
     response == Equal
   then
-    compare' (JsonList xs, JsonList ys)
+     (trace ("equal: "++ show x ++ " " ++ show y ++ "\n") compare' (JsonList xs, JsonList ys))
   else
-    response
+     (trace ("notEqual " ++ show x ++ " " ++ show y ++ "\n" ) response)
     where
       response = compare' (x,y)
 compare' (JsonList [], JsonList []) = Equal
@@ -62,7 +63,7 @@ compare' (JsonList [], JsonList a) = Truey
 compareInts :: (Json,Json) -> BoolPlus
 compareInts (JsonInteger a, JsonInteger b )
   | a<b = Truey
-  | a==b = Equal
+  | a==b = trace ("helo") Equal
   | otherwise = Falsey
 
 compareListInt :: (Json,Json) -> BoolPlus
@@ -78,25 +79,23 @@ compareListInt (JsonList a, JsonInteger b)
     firstElem = a !! 0
     ans =
       case firstElem of
-        JsonInteger c -> if (compareInts (firstElem, JsonInteger b)) /= Truey then Falsey else Truey
+        JsonInteger c -> if (result == Equal && length a > 1) then Falsey else result
+          where
+            result = compareInts (firstElem, JsonInteger b)
         JsonList a -> compareListInt (firstElem,JsonInteger b)
 
 compareIntList :: (Json,Json) -> BoolPlus
 compateIntList (JsonInteger _, JsonList []) = Falsey
 compareIntList (JsonInteger a, JsonList [b]) =
   case b of
-    JsonList c -> if length c == 0 then Falsey else compareIntList (JsonInteger a, JsonList [c !! 0])
+    JsonList c -> compareIntList (JsonInteger a, JsonList [c !! 0])
     JsonInteger _ -> compareInts (JsonInteger a,b)
 compareIntList (JsonInteger a, JsonList b)
   | length b == 0 = Falsey
   | otherwise = ans
   where
     firstElem = b !! 0
-    ans =
-      case firstElem of
-        JsonList _ -> compareIntList (JsonInteger a, firstElem)
-        JsonInteger _ -> compareInts (JsonInteger a, firstElem)
-
+    ans = compare' (JsonInteger a, firstElem)
 -- parser - do not touch
 parseJsonMessage :: String -> Either String Json
 parseJsonMessage a =
