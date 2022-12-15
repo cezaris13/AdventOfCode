@@ -44,11 +44,14 @@ main = do
   let commands = filter (\x -> length x > 0 )$ splitByNewLine contents
   let parsedCommands = map splitCommand commands
   let mapp = addCoordsAllCommands parsedCommands
-  let response =  addWhileAbyss 1 mapp
+  -- let response =  addWhileAbyss 1 mapp
+  let maxY = foldl (\x ((_,y),_) -> max x y) 0 mapp
+  let response1 = addWhileAbyss' 1 mapp maxY
   -- putStrLn $ unlines $ getMapInString mapp
   -- putStrLn ""
   -- putStrLn $ unlines $ getMapInString response
-  print $ show response
+  -- print $ show response
+  print $ show response1
 
 getMapInString :: [(Coordinate,Char)] -> [String]
 getMapInString input = mapToStrings $ updateMap (emptyMap (maxX-minX+1) (maxY+1)) input2
@@ -139,26 +142,26 @@ filterUnusedCoords'' (xs:input) acc = filterUnusedCoords'' input (if not filtere
 
 -- port 2
 
--- moveOneSand' :: Coordinate -> Maybe [(Coordinate,Char)] -> Maybe (Coordinate,Char)
--- moveOneSand' sandGrain Nothing = Nothing
--- moveOneSand' sandGrain (Just coords)
---   | not reachedBottom && snd findJustAbove' < 9999 = moveOneSand' (findJustAbove (fst sandGrain,snd sandGrain) coords) (Just coords)
---   | snd findJustAbove' == 9999 = {-- trace ("final " ++ show sandGrain  ++ " " ++ show coords++ "\n") --} Just (fst sandGrain,2)-- deepest place +1
---   | reachedBottom && canGoLeft = moveOneSand' (findJustAbove (fst sandGrain-1,snd sandGrain) coords) (Just coords)
---   | reachedBottom && canGoRight = moveOneSand'  (findJustAbove (fst sandGrain+1,snd sandGrain) coords) (Just coords)
---   | reachedBottom = Just((sandGrain,'O'))
---     where
---       reachedBottom = checkIfReachedBottom sandGrain coords
---       canGoLeft = checkIfCanGoLeft sandGrain coords
---       canGoRight = checkIfCanGoRight sandGrain coords
---       findJustAbove' = findJustAbove sandGrain coords
+moveOneSand' :: Coordinate -> Maybe [(Coordinate,Char)] -> Int -> Maybe (Coordinate,Char)
+moveOneSand' sandGrain Nothing _ = Nothing
+moveOneSand' sandGrain (Just coords) maxY
+  | not reachedBottom && snd findJustAbove' < 9999 = moveOneSand' (findJustAbove (fst sandGrain,snd sandGrain) coords) (Just coords) maxY
+  | snd findJustAbove' == 9999 = {-- trace ("final " ++ show sandGrain  ++ " " ++ show coords++ "\n") --} Just ((fst sandGrain,maxY-1),'O')
+  | reachedBottom && canGoLeft = moveOneSand' (findJustAbove (fst sandGrain-1,snd sandGrain) coords) (Just coords) maxY
+  | reachedBottom && canGoRight = moveOneSand'  (findJustAbove (fst sandGrain+1,snd sandGrain) coords) (Just coords) maxY
+  | reachedBottom = Just((sandGrain,'O'))
+    where
+      reachedBottom = checkIfReachedBottom sandGrain coords
+      canGoLeft = checkIfCanGoLeft sandGrain coords
+      canGoRight = checkIfCanGoRight sandGrain coords
+      findJustAbove' = findJustAbove sandGrain coords
 
--- addWhileAbyss' :: Int -> [(Coordinate,Char)] -> Int
--- addWhileAbyss' id input
---   | isJust oneIteration = trace ("id " ++ show id ++ "\n") addWhileAbyss' (id+1) filterr
---   | otherwise = id -1
---     where
---       oneIteration = moveOneSand' (500,0) (Just input)
---       filterUnusedCoords =  L.nub $ (fromJust oneIteration):input
---       -- filterr = filterUnusedCoords
---       filterr = if id `mod` 10 == 0 then L.nub $ filterUnusedCoords' filterUnusedCoords else L.nub filterUnusedCoords
+addWhileAbyss' :: Int -> [(Coordinate,Char)] -> Int -> Int
+addWhileAbyss' id input maxY
+  | isJust oneIteration && (fst $ fromJust oneIteration) /= (500,0)  = trace ("id " ++ show id ++ "\n") addWhileAbyss' (id+1) filterr maxY
+  | otherwise = id
+    where
+      oneIteration = moveOneSand' (500,0) (Just input) (maxY + 2)
+      filterUnusedCoords =  L.nub $ (fromJust oneIteration):input
+      -- filterr = filterUnusedCoords
+      filterr = if id `mod` 10 == 0 then L.nub $ filterUnusedCoords' filterUnusedCoords else L.nub filterUnusedCoords
